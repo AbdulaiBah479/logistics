@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  DISPATCHER
+  RIDER
+}
+
+enum VehicleType {
+  BICYCLE
+  MOTORBIKE
+  TRICYCLE
+  CAR
+  VAN
+}
+
+enum OrderStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum NotificationChannel {
+  SMS
+  WHATSAPP
+}
+
+enum NotificationDeliveryMode {
+  SIMULATED
+  SENT
+  FAILED
+}
+
+enum MessageSenderRole {
+  STAFF
+  RIDER
+  CUSTOMER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  riderProfile  Rider?
+  ordersCreated Order[]      @relation("OrderCreatedBy")
+  orderEvents   OrderEvent[]
+}
+
+model Rider {
+  id          String      @id @default(cuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id])
+  phone       String
+  vehicleType VehicleType
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orders Order[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+
+  orders Order[]
+}
+
+model Order {
+  id           String @id @default(cuid())
+  trackingCode String @unique
+
+  status OrderStatus @default(PENDING)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  riderId String?
+  rider   Rider?  @relation(fields: [riderId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("OrderCreatedBy", fields: [createdById], references: [id])
+
+  packageDescription String
+  codAmount          Int?
+
+  pickupAddress  String
+  pickupLat      Float
+  pickupLng      Float
+  dropoffAddress String
+  dropoffLat     Float
+  dropoffLng     Float
+
+  estimatedDistanceKm      Float?
+  estimatedDurationMinutes Int    @default(30)
+  deliveryFee              Int?
+  scheduledFor             DateTime?
+
+  assignedAt  DateTime?
+  pickedUpAt  DateTime?
+  inTransitAt DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  cancelledAt DateTime?
+
+  failureReason           String?
+  proofOfDeliveryPhotoUrl String?
+
+  rating        Int?
+  ratingComment String?
+  ratedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events        OrderEvent[]
+  notifications Notification[]
+  messages      Message[]
+
+  @@index([status])
+  @@index([riderId])
+}
+
+model OrderEvent {
+  id      String      @id @default(cuid())
+  orderId String
+  order   Order       @relation(fields: [orderId], references: [id])
+  status  OrderStatus
+  lat     Float?
+  lng     Float?
+  note    String?
+
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Notification {
+  id             String                   @id @default(cuid())
+  orderId        String
+  order          Order                    @relation(fields: [orderId], references: [id])
+  channel        NotificationChannel
+  recipientPhone String
+  message        String
+  deliveryMode   NotificationDeliveryMode @default(SIMULATED)
+  createdAt      DateTime                 @default(now())
+
+  @@index([orderId])
+}
+
+model Message {
+  id         String            @id @default(cuid())
+  orderId    String
+  order      Order             @relation(fields: [orderId], references: [id])
+  senderRole MessageSenderRole
+  senderName String
+  body       String
+  createdAt  DateTime          @default(now())
+
+  @@index([orderId])
+}

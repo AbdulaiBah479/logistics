@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+  <rect width="480" height="360" fill="#e8f3ee"/>
+  <rect x="16" y="16" width="448" height="328" rx="12" fill="#ffffff" stroke="#c7ded4" stroke-width="2"/>
+  <circle cx="240" cy="150" r="56" fill="#2f9e6f"/>
+  <path d="M214 150 L233 170 L268 128" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="240" y="245" font-family="sans-serif" font-size="22" fill="#1f2d27" text-anchor="middle" font-weight="600">Delivered</text>
+  <text x="240" y="275" font-family="sans-serif" font-size="14" fill="#5b6a63" text-anchor="middle">Proof-of-delivery photo (demo placeholder)</text>
+</svg>
